@@ -33,3 +33,4 @@ go.work.sum
 
 bundles/*.zip
 dist/
+.DS_Store
