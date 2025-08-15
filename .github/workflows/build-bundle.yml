@@ -1,0 +1,75 @@
+name: Build Bundle ZIP
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "manifest/manifest.json"
+      - ".github/workflows/build-bundle.yml"
+  pull_request:
+    paths:
+      - "manifest/manifest.json"
+  workflow_dispatch:
+    inputs:
+      tyk_cli_tag:
+        description: "tyk-cli image tag (e.g., 0.7.0 or latest)"
+        required: false
+        default: "latest"
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+env:
+  BUNDLE_NAME: phantom-bundle.zip
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set tyk-cli tag
+        id: cli
+        run: |
+          if [ -n "${{ github.event.inputs.tyk_cli_tag }}" ]; then
+            echo "TAG=${{ github.event.inputs.tyk_cli_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=latest" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build signed bundle with tyk-cli
+        run: |
+          mkdir -p bundles
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
+            -v "$GITHUB_WORKSPACE/bundles:/work/out" \
+            ghcr.io/tyktechnologies/tyk-cli:${{ steps.cli.outputs.TAG }} \
+            bundle build \
+              -y \
+              -p /work/manifest \
+              -o /work/out/${{ env.BUNDLE_NAME }}
+          ls -lh "bundles/${{ env.BUNDLE_NAME }}"
+
+      - name: Generate checksum
+        run: |
+          cd bundles
+          sha256sum "${{ env.BUNDLE_NAME }}" | tee "${{ env.BUNDLE_NAME }}.sha256"
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BUNDLE_NAME }}
+          path: |
+            bundles/${{ env.BUNDLE_NAME }}
+            bundles/${{ env.BUNDLE_NAME }}.sha256
+          retention-days: 14
+
+      - name: Attach to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            bundles/${{ env.BUNDLE_NAME }}
+            bundles/${{ env.BUNDLE_NAME }}.sha256
