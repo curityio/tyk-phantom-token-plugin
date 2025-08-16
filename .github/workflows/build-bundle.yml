@@ -2,7 +2,7 @@ name: Build Bundle ZIP
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, initial-code ]
     paths:
       - "manifest/manifest.json"
       - ".github/workflows/build-bundle.yml"
