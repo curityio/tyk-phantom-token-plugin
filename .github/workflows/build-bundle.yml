@@ -1,25 +1,17 @@
-name: Build Bundle  ZIP
+name: Build Bundle ZIP
 
 on:
   push:
     branches: [ main, initial-code ]
-    paths:
-      - "manifest/manifest.json"
-      - ".github/workflows/build-bundle.yml"
   pull_request:
-    paths:
-      - "manifest/manifest.json"
+    branches: [ main, initial-code ]
   workflow_dispatch:
-    inputs:
-      tyk_cli_tag:
-        description: "tyk-cli image tag (e.g., 0.7.0 or latest)"
-        required: false
-        default: "latest"
   release:
     types: [created]
 
 permissions:
   contents: write
+  packages: read         
 
 env:
   BUNDLE_NAME: phantom-bundle.zip
@@ -30,14 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set tyk-cli tag
-        id: cli
-        run: |
-          if [ -n "${{ github.event.inputs.tyk_cli_tag }}" ]; then
-            echo "TAG=${{ github.event.inputs.tyk_cli_tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "TAG=latest" >> $GITHUB_OUTPUT
-          fi
+      - name: Login to GHCR       
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build signed bundle with tyk-cli
         run: |
@@ -45,12 +35,8 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
             -v "$GITHUB_WORKSPACE/bundles:/work/out" \
-            ghcr.io/tyktechnologies/tyk-cli:${{ steps.cli.outputs.TAG }} \
-            bundle build \
-              -y \
-              -p /work/manifest \
-              -o /work/out/${{ env.BUNDLE_NAME }}
-          ls -lh "bundles/${{ env.BUNDLE_NAME }}"
+            ghcr.io/tyktechnologies/tyk-cli:latest \
+            bundle build -y -p /work/manifest -o /work/out/${{ env.BUNDLE_NAME }}
 
       - name: Generate checksum
         run: |
