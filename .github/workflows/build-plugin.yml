@@ -7,6 +7,7 @@ on:
       - "plugin/**"
       - ".github/workflows/build-plugin.yml"
   pull_request:
+    branches: [ main, initial-code ]
     paths:
       - "plugin/**"
   workflow_dispatch:
@@ -28,35 +29,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Derive image tags
-        id: meta
-        run: |
-          REPO="ghcr.io/${{ github.repository_owner }}/phantom-plugin"
-          SHA_TAG="sha-${GITHUB_SHA::7}"
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "tags=$REPO:${{ github.ref_name }},$REPO:latest" >> $GITHUB_OUTPUT
-          else
-            echo "tags=$REPO:${SHA_TAG}" >> $GITHUB_OUTPUT
-          fi
-          echo "local_tag=phantom-plugin:${SHA_TAG}" >> $GITHUB_OUTPUT
-
-      - name: Build multi-arch (no push) and export local tar (amd64)
+      # 1) Multi-arch build (no export) — just to validate both platforms compile
+      - name: Build multi-arch (validate only, no export)
         uses: docker/build-push-action@v6
         with:
           context: ./plugin
           file: ./plugin/Dockerfile.plugin
           platforms: linux/amd64,linux/arm64
           push: false
-          tags: ${{ steps.meta.outputs.local_tag }}
-          outputs: type=docker,dest=/tmp/phantom-plugin-image.tar
+          # no outputs -> no export; validates build on both archs
+
+      # 2) Export a single-arch tarball artifact that users can 'docker load -i'
+      - name: Build single-arch (amd64) and export docker tar
+        uses: docker/build-push-action@v6
+        with:
+          context: ./plugin
+          file: ./plugin/Dockerfile.plugin
+          platforms: linux/amd64
+          push: false
+          outputs: type=docker,dest=/tmp/phantom-plugin-image-amd64.tar
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
-          name: phantom-plugin-image
-          path: /tmp/phantom-plugin-image.tar
+          name: phantom-plugin-image-amd64
+          path: /tmp/phantom-plugin-image-amd64.tar
           retention-days: 14
 
+      # Optional: push multi-arch to GHCR on release
       - name: Login to GHCR
         if: github.event_name == 'release'
         uses: docker/login-action@v3
@@ -65,7 +65,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push to GHCR (release)
+      - name: Build & Push multi-arch (release)
         if: github.event_name == 'release'
         uses: docker/build-push-action@v6
         with:
@@ -73,4 +73,4 @@ jobs:
           file: ./plugin/Dockerfile.plugin
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/${{ github.repository_owner }}/phantom-plugin:${{ github.ref_name }},ghcr.io/${{ github.repository_owner }}/phantom-plugin:latest
