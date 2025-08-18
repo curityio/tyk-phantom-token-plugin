@@ -27,12 +27,13 @@ jobs:
         run: |
           mkdir -p bundles
           docker run --rm \
-            --entrypoint /bin/sh \
+            --entrypoint /opt/tyk-gateway/tyk \
+            -w /work/manifest \
             -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
             -v "$GITHUB_WORKSPACE/bundles:/work/out" \
             tykio/tyk-gateway:v5.9.0 \
-            -lc 'cd /work/manifest && /opt/tyk-gateway/tyk bundle build -y -o /work/out/phantom-bundle.zip'
-          ls -lh bundles/phantom-bundle.zip
+            bundle build -y -o /work/out/${{ env.BUNDLE_NAME }}
+          ls -lh "bundles/${{ env.BUNDLE_NAME }}"
 
       - name: Generate checksum
         run: |
