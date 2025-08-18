@@ -1,3 +1,4 @@
+# .github/workflows/build-bundle.yml
 name: Build Bundle ZIP
 
 on:
@@ -11,10 +12,10 @@ on:
 
 permissions:
   contents: write
-  packages: read         
 
 env:
   BUNDLE_NAME: phantom-bundle.zip
+  GATEWAY_TAG: v5.9.0   # pin to a known good
 
 jobs:
   bundle:
@@ -22,21 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to GHCR       
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build signed bundle with tyk-cli
+      - name: Build signed bundle with gateway image
         run: |
           mkdir -p bundles
           docker run --rm \
+            --entrypoint /opt/tyk-gateway/tyk \
             -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
             -v "$GITHUB_WORKSPACE/bundles:/work/out" \
-            ghcr.io/tyktechnologies/tyk-cli:latest \
+            tykio/tyk-gateway:${{ env.GATEWAY_TAG }} \
             bundle build -y -p /work/manifest -o /work/out/${{ env.BUNDLE_NAME }}
+          ls -lh "bundles/${{ env.BUNDLE_NAME }}"
 
       - name: Generate checksum
         run: |
