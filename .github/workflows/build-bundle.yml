@@ -39,6 +39,7 @@ jobs:
         run: |
           mkdir -p bundles
           docker run --rm \
+            --workdir /work/manifest \
             --entrypoint /opt/tyk-gateway/tyk \
             -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
             -v "$GITHUB_WORKSPACE/bundles:/work/out" \
