@@ -1,15 +1,15 @@
 services:
   phantom-plugin:
-    image: ghcr.io/curity/tyk-phantom-plugin:latest
-    # If your gateway nodes are amd64 and you're on Apple Silicon locally:
-    # platform: linux/amd64
+    build:
+      context: ./plugin
+      dockerfile: Dockerfile.plugin
+    image: phantom-plugin:dev
     environment:
       PORT: 50051
       INTROSPECTION_URL: ${INTROSPECTION_URL}
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
     expose: ["50051"]
-    pull_policy: always
     networks: [tyk]
 
   bundle-fetch:
