@@ -1,15 +1,15 @@
 services:
   phantom-plugin:
-    build:
-      context: ./plugin
-      dockerfile: Dockerfile.plugin
-    image: tyk-phantom-token-plugin:dev
+    image: ghcr.io/curity/tyk-phantom-plugin:latest
+    # If your gateway nodes are amd64 and you're on Apple Silicon locally:
+    # platform: linux/amd64
     environment:
       PORT: 50051
       INTROSPECTION_URL: ${INTROSPECTION_URL}
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
     expose: ["50051"]
+    pull_policy: always
     networks: [tyk]
 
   bundle-fetch:
@@ -40,5 +40,4 @@ services:
 networks:
   tyk:
     external: true
-    # name: [gw_network_name]
     name: tyk-self-managed-trial_tyk
