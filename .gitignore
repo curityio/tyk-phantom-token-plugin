@@ -31,6 +31,5 @@ go.work.sum
 # .idea/
 # .vscode/
 
-bundles/*.zip
 dist/
 .DS_Store
