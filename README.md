@@ -33,7 +33,7 @@ After downloading, choose one of the following options:
 Place the file at `./bundles/phantom-bundle.zip` in this repo.  
 Then start the stack with:  
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 The included bundle-server container will automatically serve the bundle to your Tyk Gateway.
 
