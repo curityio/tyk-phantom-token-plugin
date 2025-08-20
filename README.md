@@ -8,7 +8,7 @@ The plugin is comprised of:
 - A **plugin container** that implements the gRPC middleware
 - A **bundle server** container to serve the signed plugin bundle to Tyk
 
-> **Prerequisite:** You already have a running Tyk Gateway environment and a instance of the Curity Identity Server configured to support [Introspection](https://curity.io/resources/learn/introspect-with-phantom-token/).
+> **Prerequisite:** You already have a running [Tyk Gateway](https://tyk.io/docs/tyk-self-managed/) environment and an instance of the Curity Identity Server configured to support [Introspection](https://curity.io/resources/learn/introspect-with-phantom-token/).
 
 
 ## Quick Start
@@ -17,10 +17,7 @@ git clone https://github.com/curityio/tyk-phantom-token-plugin.git
 cd tyk-phantom-token-plugin
 cp .env.example .env
 # edit .env with your Curity introspection URL + creds
-```
-Download the `phantom-bundle.zip` and place the file at `./bundles/phantom-bundle.zip`.
 
-```bash
 # Build & run the plugin + bundle server
 docker compose up -d --build
 ```
