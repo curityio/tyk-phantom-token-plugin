@@ -29,24 +29,23 @@ Before starting the Docker Compose stack, download the bundle from the [GitHub R
 
 After downloading, choose one of the following options:
 
-### Option A (default, bundle-server):
+### Bundle Server (default)
 Place the file at `./bundles/phantom-bundle.zip` in this repo.  
 Then start the stack with:  
 ```bash
 docker compose up -d --build
 ```
-The included bundle-server container will automatically serve the bundle to your Tyk Gateway.
+The included bundle-server container will automatically serve the bundle to the Tyk Gateway.
 
-### Option B (self-hosted):
+### Self Hosted
 Host the bundle on your own web server (e.g. S3, Nginx).
-Update your Tyk Gateway configuration (`tyk.conf`) with the correct `bundle_base_url` pointing to that location.
-
+Update your Tyk Gateway configuration (`tyk.conf`) with the correct `bundle_base_url` pointing to that hosted location.
 
 ## Tyk Gateway Configuration
 Enabling coprocess as global ENV’s in Tyk doesn’t work reliably (tested v5.8.3).  
 Instead, configure these settings directly in `tyk.conf`.
 
-Minimal example:
+Example:
 
 ```json
 {
@@ -77,7 +76,7 @@ Minimal example:
 
 > **Important**  
 > - Set both the root `enable_coprocess` flag and the nested `coprocess_options.enable_coprocess`.  
-> - If your gateway environment (`tyk.env`) has `TYK_GW_COPROCESSOPTIONS_COPROCESSGRPCSERVER=tcp://localhost:5555` or similar configured, remove or comment it out. It overrides the correct Docker hostname.  
+> - If your gateway environment (`tyk.env`) has `TYK_GW_COPROCESSOPTIONS_COPROCESSGRPCSERVER=tcp://localhost:5555` or similar configured, remove or comment it out. It overrides these settings.  
 
 ## Networking
 Ensure your existing Gateway can resolve and reach these services:
@@ -85,7 +84,7 @@ Ensure your existing Gateway can resolve and reach these services:
 - `phantom-plugin:50051` (gRPC)
 - `bundle-server` (HTTP 80)
 
-If your Gateway runs in Docker, connect this compose project to the same network:
+If your ateway runs in Docker, connect this compose project to the same network:
 
 ```bash
 # find gateway's network
@@ -125,21 +124,13 @@ x-tyk-api-gateway:
 ```
 
 ## Test
-Call an API configured with Custom Auth and the bundle:
+Call an API configured with Custom Authentication Plugin:
 
 ```bash
-curl -i -H "Authorization: Bearer OPAQUE_OPAQUE" http://<your-gw-host>:8080/<your-api>/
+curl -i -H "Authorization: Bearer OPAQUE_TOKEN" http://<your-gw-host>:8080/<your-api>/
 ```
 
-Optionally tail plugin logs:
-
-```bash
-docker compose logs -f phantom-plugin
-```
-
-Expected:
-- Plugin logs show `PhantomAuthCheck`
-- Upstream request contains `Authorization: Bearer <JWT>`
+The upstream request now contains `Authorization: Bearer <JWT>`.
 
 ## GitHub Actions and Releases
 
@@ -147,8 +138,6 @@ This repo includes two GitHub Actions workflows:
 
 - **Build Plugin Image** – builds the gRPC plugin Docker image, publishes it as an artifact, and pushes to GHCR on release.  
 - **Build Bundle ZIP** – generates a signed `phantom-bundle.zip` and publishes it as both an artifact and a GitHub Release asset.
-
-You can point your Gateway’s `bundle_base_url` to the local `bundle-server`, or download the ZIP directly from the release and host it elsewhere.
 
 ## More Information
 
