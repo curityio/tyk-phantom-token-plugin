@@ -84,7 +84,7 @@ Ensure your existing Gateway can resolve and reach these services:
 - `phantom-plugin:50051` (gRPC)
 - `bundle-server` (HTTP 80)
 
-If your ateway runs in Docker, connect this compose project to the same network:
+If your Gateway runs in Docker, connect this compose project to the same network:
 
 ```bash
 # find gateway's network
