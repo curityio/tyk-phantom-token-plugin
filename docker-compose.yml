@@ -1,0 +1,25 @@
+services:
+  phantom-plugin:
+    build:
+      context: ./plugin
+      dockerfile: Dockerfile.plugin
+    image: phantom-plugin:dev
+    environment:
+      PORT: 50051
+      INTROSPECTION_URL: ${INTROSPECTION_URL}
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+    expose: ["50051"]
+    networks: [tyk]
+
+  bundle-server:
+    image: nginx:alpine
+    volumes:
+      - ./bundles:/usr/share/nginx/html:ro
+    expose: ["80"]
+    networks: [tyk]
+
+networks:
+  tyk:
+    external: true
+    name: tyk-self-managed-trial_tyk   # or your gateway’s network name
