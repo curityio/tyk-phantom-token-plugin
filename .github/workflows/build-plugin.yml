@@ -2,7 +2,7 @@ name: Build Plugin Image
 
 on:
   push:
-    branches: [ main, initial-code ]
+    branches: [ main ]
     paths:
       - "plugin/**"
       - ".github/workflows/build-plugin.yml"

@@ -1,7 +1,7 @@
 # Tyk Phantom Token Plugin
 
 [![Quality](https://img.shields.io/badge/quality-demo-red)](https://curity.io/resources/code-examples/status/)
-[![Availability](https://img.shields.io/badge/availability-source-blue)](https://curity.io/resources/code-examples/status/)
+[![Availability](https://img.shields.io/badge/availability-binary-blue)](https://curity.io/resources/code-examples/status/)
 
 This repository contains a ready-to-run **Phantom Token** [Rich gRPC plugin](https://tyk.io/docs/api-management/plugins/rich-plugins/) for Tyk Gateway.  
 The plugin is comprised of:
