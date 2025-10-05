@@ -1,0 +1,64 @@
+name: Build Bundle ZIP
+
+on:
+  push:
+    branches: [ main, initial-code ]
+    paths:
+      - "manifest/manifest.json"
+      - ".github/workflows/build-bundle.yml"
+  pull_request:
+    paths:
+      - "manifest/manifest.json"
+  workflow_dispatch:
+    inputs:
+      gateway_version:
+        description: "Tyk Gateway tag to use for bundler"
+        required: false
+        default: "v5.9.0"
+  release:
+    types: [created]
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_NAME: phantom-bundle.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve gateway version
+        id: gv
+        run: |
+          if [ -n "${{ github.event.inputs.gateway_version }}" ]; then
+            echo "GV=${{ github.event.inputs.gateway_version }}" >> $GITHUB_OUTPUT
+          else
+            echo "GV=v5.9.0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build signed bundle via Tyk bundler
+        run: |
+          mkdir -p bundles
+          docker run --rm \
+            --workdir /work/manifest \
+            --entrypoint /opt/tyk-gateway/tyk \
+            -v "$GITHUB_WORKSPACE/manifest:/work/manifest:ro" \
+            -v "$GITHUB_WORKSPACE/bundles:/work/out" \
+            tykio/tyk-gateway:${{ steps.gv.outputs.GV }} \
+            bundle build -y -o /work/out/${{ env.BUNDLE_NAME }}
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BUNDLE_NAME }}
+          path: bundles/${{ env.BUNDLE_NAME }}
+
+      # Attach to release and append links when this job runs on a release
+      - name: Attach bundle to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bundles/${{ env.BUNDLE_NAME }}
+          append_body: true
+          body: |
+            ## Download: Phantom Token Bundle
+            **Bundle ZIP:** https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.BUNDLE_NAME }}

@@ -1,0 +1,7 @@
+{
+  "custom_middleware": {
+    "driver": "grpc",
+    "auth_check": { "name": "PhantomAuthCheck", "require_session": false },
+    "post_key_auth": [{ "name": "InjectJwtPostKeyAuth", "require_session": false }]
+  }
+}
