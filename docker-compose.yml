@@ -9,14 +9,14 @@ services:
       INTROSPECTION_URL: ${INTROSPECTION_URL}
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
-    expose: ["50051"]
+    expose: ["50051"] #No need to expose if Tyk Gateway is on the same network as the plugin
     networks: [tyk]
 
   bundle-server:
     image: nginx:alpine
     volumes:
       - ./bundles:/usr/share/nginx/html:ro
-    expose: ["80"]
+    expose: ["80"] #No need to expose if Tyk Gateway is on the same network as the bundle-server
     networks: [tyk]
 
 networks:
